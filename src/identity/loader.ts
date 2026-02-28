@@ -8,6 +8,8 @@ export interface IdentityFiles {
   style?: string;
   memory?: string;
   agents?: string;
+  history?: string;
+  heartbeat?: string;
 }
 
 export interface SystemPromptParts {
@@ -34,18 +36,20 @@ function readMarkdownFile(filename: string): Promise<string | undefined> {
 }
 
 export async function loadIdentityFiles(): Promise<IdentityFiles> {
-  const [soul, style, memory, agents] = await Promise.all([
+  const [soul, style, memory, agents, history, heartbeat] = await Promise.all([
     readMarkdownFile('SOUL.md'),
     readMarkdownFile('STYLE.md'),
     readMarkdownFile('MEMORY.md'),
     readMarkdownFile('AGENTS.md'),
+    readMarkdownFile('HISTORY.md'),
+    readMarkdownFile('HEARTBEAT.md'),
   ]);
 
   if (soul === undefined) {
     throw new Error('SOUL.md is required in workspace');
   }
 
-  return { soul, style, memory, agents };
+  return { soul, style, memory, agents, history, heartbeat };
 }
 
 function truncateToLines(content: string, maxLines: number): string {
@@ -94,6 +98,8 @@ export async function getIdentitySummary(): Promise<{
   hasStyle: boolean;
   hasMemory: boolean;
   hasAgents: boolean;
+  hasHistory: boolean;
+  hasHeartbeat: boolean;
 }> {
   const identity = await loadIdentityFiles();
 
@@ -102,6 +108,8 @@ export async function getIdentitySummary(): Promise<{
     hasStyle: !!identity.style,
     hasMemory: !!identity.memory,
     hasAgents: !!identity.agents,
+    hasHistory: !!identity.history,
+    hasHeartbeat: !!identity.heartbeat,
   };
 }
 
