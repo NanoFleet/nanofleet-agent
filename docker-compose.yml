@@ -1,0 +1,42 @@
+services:
+  agent:
+    image: nanofleet-agent:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4111:4111"
+    volumes:
+      - ./workspace:/workspace
+    env_file:
+      - .env
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - AGENT_MODEL=${AGENT_MODEL:-claude-haiku-4-5}
+      - AGENT_WORKSPACE=/workspace
+      - MEMORY_DB_PATH=/workspace/.db/agent.db
+      - PORT=4111
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:4111/health').then(r=>process.exit(r.ok?0:1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - nanofleet
+
+  telegram-channel:
+    image: nanofleet-telegram-channel:latest
+    build:
+      context: ./nanofleet-agent-channels/telegram/
+      dockerfile: Dockerfile
+    env_file:
+      - ./nanofleet-agent-channels/telegram/.env
+    restart: unless-stopped
+    networks:
+      - nanofleet
+
+networks:
+  nanofleet:
+    driver: bridge

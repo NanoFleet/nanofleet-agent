@@ -1,0 +1,8 @@
+[
+  // {
+  //   "name": "morning-briefing",
+  //   "message": "Good morning! Prepare a briefing of today's priorities.",
+  //   "cron": "0 8 * * *",
+  //   "timezone": "Europe/Paris"
+  // }
+]
