@@ -239,6 +239,16 @@ curl http://localhost:4111/api/agents/main/usage/threads/thread-123
 
 </details>
 
+## Channels
+
+Channels connect the agent to external platforms (Telegram, Discord, ...). Each channel is a standalone adapter that forwards messages to the agent via HTTP/SSE.
+
+Available channels: [nanofleet-agent-channels](https://github.com/NanoFleet/nanofleet-agent-channels)
+
+The `docker-compose.yml` includes a commented Telegram example — uncomment and configure it to add a channel alongside the agent.
+
+> If you use [NanoFleet](https://github.com/NanoFleet/nanofleet), channels are deployed and managed from the web dashboard — no manual docker-compose configuration needed.
+
 ## License
 
 [Elastic License 2.0 (ELv2)](LICENSE)
