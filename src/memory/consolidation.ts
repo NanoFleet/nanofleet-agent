@@ -59,7 +59,6 @@ export async function consolidateMemory(
   _recentMessages: Array<{ role: string; content: string }>,
 ): Promise<ConsolidationResult> {
   try {
-    const currentMemory = await readMemoryFile();
     const timestamp = formatTimestamp();
 
     const historyEntry = `## ${timestamp}

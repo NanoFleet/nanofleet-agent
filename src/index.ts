@@ -1,4 +1,4 @@
-import { mastra, server } from './mastra';
+import { server } from './mastra';
 import { startCLI } from './channels/cli';
 
 const PORT = parseInt(process.env.PORT || '4111');
