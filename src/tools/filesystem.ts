@@ -1,7 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 
 function getWorkspacePath(): string {
   const workspace = process.env.AGENT_WORKSPACE;
@@ -13,9 +13,10 @@ function getWorkspacePath(): string {
 
 function safePath(filepath: string): string {
   const workspace = getWorkspacePath();
-  const resolved = join(workspace, filepath);
+  const workspaceResolved = resolve(workspace);
+  const resolved = resolve(workspaceResolved, filepath);
 
-  if (!resolved.startsWith(workspace)) {
+  if (resolved !== workspaceResolved && !resolved.startsWith(workspaceResolved + sep)) {
     throw new Error('Path traversal detected');
   }
 
@@ -71,7 +72,7 @@ export const editFileTool = createTool({
       };
     }
 
-    const newContent = content.replace(oldString, newString);
+    const newContent = content.replaceAll(oldString, newString);
     await writeFile(fullPath, newContent, 'utf-8');
 
     return { path, success: true };
@@ -86,8 +87,7 @@ export const listDirTool = createTool({
     recursive: z.boolean().describe('List recursively').optional(),
   }),
   execute: async ({ path = '', recursive = false }) => {
-    const workspace = getWorkspacePath();
-    const fullPath = join(workspace, path);
+    const fullPath = safePath(path);
 
     async function walk(dir: string, relPath: string): Promise<Array<{ path: string; type: 'file' | 'directory' }>> {
       const entries = await readdir(dir);
