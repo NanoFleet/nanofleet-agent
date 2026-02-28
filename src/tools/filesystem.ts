@@ -1,7 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
-import { join, relative, dirname } from 'node:path';
+import { join } from 'node:path';
 
 function getWorkspacePath(): string {
   const workspace = process.env.AGENT_WORKSPACE;
