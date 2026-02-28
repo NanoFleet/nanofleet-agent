@@ -73,7 +73,7 @@ export async function consolidateMemory(
 
     return {
       success: true,
-      memoryUpdated: true,
+      memoryUpdated: false,
       historyUpdated: true,
     };
   } catch (error) {
