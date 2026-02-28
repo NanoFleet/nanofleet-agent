@@ -14,6 +14,9 @@ COPY . .
 
 FROM base AS runner
 
+ARG AGENT_VERSION=dev
+LABEL com.nanofleet.agent-version=${AGENT_VERSION}
+
 ENV NODE_ENV=production
 
 COPY --from=builder /app/node_modules ./node_modules
