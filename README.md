@@ -36,6 +36,7 @@ cp .env.example .env
 # Add your API key (ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or OPENROUTER_API_KEY)
 # Set AGENT_MODEL (e.g. claude-haiku-4-5, gemini-2.0-flash, openrouter:meta-llama/llama-3.3-70b-instruct)
 
+# Edit `docker-compose.yml` and uncomment a channel adapter to connect the agent to an external platform.
 docker compose up -d
 
 curl http://localhost:4111/health
