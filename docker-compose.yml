@@ -26,16 +26,21 @@ services:
     networks:
       - nanofleet
 
-  telegram-channel:
-    image: nanofleet-telegram-channel:latest
-    build:
-      context: ./nanofleet-agent-channels/telegram/
-      dockerfile: Dockerfile
-    env_file:
-      - ./nanofleet-agent-channels/telegram/.env
-    restart: unless-stopped
-    networks:
-      - nanofleet
+  # ── Channel (optional) ─────────────────────────────────────────────────────
+  # Uncomment a channel adapter to connect the agent to an external platform.
+  # See: https://github.com/NanoFleet/nanofleet-agent-channels
+  #
+  # Telegram
+  # telegram:
+  #   image: ghcr.io/nanofleet/nanofleet-channel-telegram:latest
+  #   environment:
+  #     AGENT_URL: http://agent:4111
+  #     TELEGRAM_BOT_TOKEN: your_token_here
+  #     ALLOWED_USERS: ""              # optional: comma-separated Telegram user IDs
+  #     NOTIFICATION_USER_ID: ""       # optional: Telegram user ID for agent notifications
+  #   restart: unless-stopped
+  #   networks:
+  #     - nanofleet
 
 networks:
   nanofleet:
