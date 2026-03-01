@@ -1,6 +1,6 @@
 {
   "name": "nanofleet-agent",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "private": true,
   "description": "Autonomous AI agent runtime, self-hosted and provider-agnostic",
