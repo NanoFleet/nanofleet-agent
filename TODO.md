@@ -264,38 +264,4 @@
 
 ---
 
-## Polish & documentation
-
-- [ ] Write `README.md` with quick-start (Docker + env vars)
-- [ ] Document all env vars (from §16)
-- [ ] Document `.mcp.json` format
-- [ ] Document `cron.json` format
-- [ ] Document `SKILL.md` frontmatter schema
-- [ ] Write `CONTRIBUTING.md`
-- [ ] Add OpenAPI spec for HTTP endpoints (or auto-generate via Mastra/Hono)
-- [ ] Add basic test suite (vitest or Bun test):
-  - [ ] Identity loader unit tests
-  - [ ] Memory consolidation logic
-  - [ ] Cost calculation from price table
-  - [ ] Tool deny-pattern check
-  - [ ] Skill loader (frontmatter parsing)
-  - [ ] Heartbeat skip logic (empty file)
-
----
-
-## Backlog / future
-
-- [x] `nanofleet-agent-channels` repo: Telegram adapter (thread persistence via `threads.json`, `/new` command, notification forwarding via `NOTIFICATION_USER_ID`)
-- [ ] `nanofleet-agent-channels` repo: Discord adapter (subscribe to `/notifications/stream` at startup)
-- [ ] `nanofleet-agent-channels` repo: generic webhook adapter
-- [ ] Real-time voice channel (GPT-4o Realtime / Gemini Live)
-- [ ] Agent self-update: allow agent to install new skills at runtime
-- [ ] Multi-tenant mode: multiple users per agent instance (resourceId isolation)
-- [ ] Mastra Studio UI: enable at `/studio` for local dev
-- [ ] MCP server exposure: nanofleet-agent as MCP server (§7)
-- [ ] Pricing registry auto-update (pull from upstream source periodically)
-- [ ] Model override mid-session with cache-miss cost warning shown to user
-
----
-
 *Phases 0–4 are the critical path to a working agent. Phases 5–8 add the features that differentiate nanofleet-agent. Phases 9–14 are production-readiness.*
