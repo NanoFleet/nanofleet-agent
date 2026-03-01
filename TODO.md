@@ -265,3 +265,169 @@
 ---
 
 *Phases 0–4 are the critical path to a working agent. Phases 5–8 add the features that differentiate nanofleet-agent. Phases 9–14 are production-readiness.*
+
+---
+
+## 12. Multi-Agent & Group Chat
+
+### Standalone multi-agent
+
+Multiple `nanofleet-agent` instances (one per container) can collaborate. Each agent is autonomous and exposes its own HTTP endpoints. Coordination happens at the channel level, not inside the agent core.
+
+### Group chat model
+
+A group conversation involves multiple agents and one or more humans in a shared message thread. The channel manages turn-taking.
+
+**Routing modes:**
+
+| Mode | Trigger | Behavior |
+|---|---|---|
+| `@mention` | `@agent-name` in message | Routes directly to named agent |
+| `broadcast` | No mention | All agents in group receive the message |
+| `moderator` | No mention, moderator configured | Moderator decides which agent(s) respond |
+
+**Moderator pattern:**
+
+One agent in the group is designated `moderator: true`. It:
+- Always receives messages (`requireMention: false`)
+- Decides which other agents to involve (via @mention in its response)
+- Prevents ping-pong loops (`agent-to-agent limit` configurable)
+- Can synthesize responses from multiple specialists before replying
+
+**Loop prevention:**
+- Configurable `maxAgentTurns` per group session
+- `requireMention: true` for non-moderator agents by default
+- Agent responses containing only `@mentions` without user-facing content do not reset the turn counter
+
+**Shared context:**
+
+All agents in a group share the same `threadId`, so each agent reads the full conversation history (including other agents' messages) when it responds.
+
+```
+Group thread messages: [
+  { author: "human",     content: "How do we scale this API?" },
+  { author: "agent-perf", content: "I'd recommend Redis caching..." },
+  { author: "agent-arch", content: "With Redis, consider consistency..." },
+  { author: "human",     content: "@agent-sec what's the security angle?" },
+  { author: "agent-sec", content: "The main concern is..." },
+]
+```
+
+### Concrete example — Discord multi-agent setup
+
+**Setup:** a Discord server with a `#project-x` channel. Three agents are deployed:
+
+| Agent | Role | Model | `requireMention` |
+|---|---|---|---|
+| `mod` | Moderator — orchestrates, always active | claude-sonnet-4-6 | false |
+| `perf` | Performance specialist | claude-haiku-4-5 | true |
+| `sec` | Security specialist | claude-haiku-4-5 | true |
+
+The Discord channel adapter connects to all three agents and knows the group config.
+
+---
+
+**Scenario: a user asks a general question**
+
+```
+[Discord #project-x]
+alice: How do we scale this API to handle 10x traffic?
+```
+
+**Step 1 — Discord adapter receives the event**
+
+The Discord adapter receives a `messageCreate` event. No `@mention` of a specific agent → moderator mode. It calls:
+
+```
+POST http://agent-mod:4111/api/agents/mod/stream
+{
+  "messages": [{ "role": "user", "content": "How do we scale this API to handle 10x traffic?" }],
+  "threadId": "discord:project-x",
+  "resourceId": "discord:project-x",
+  "author": "alice"
+}
+```
+
+**Step 2 — Moderator decides who responds**
+
+`agent-mod` sees the question and decides it needs the performance specialist. Its response (internal, not shown to Discord):
+
+```
+This question is about scaling — @perf should handle this.
+```
+
+The adapter detects `@perf` in the moderator's response and calls:
+
+```
+POST http://agent-perf:4111/api/agents/perf/stream
+{
+  "messages": [
+    { "role": "user",      "content": "How do we scale this API to handle 10x traffic?" },
+    { "role": "assistant", "content": "[mod]: This question is about scaling — @perf should handle this." }
+  ],
+  "threadId": "discord:project-x",
+  "resourceId": "discord:project-x"
+}
+```
+
+**Step 3 — Specialist responds**
+
+`agent-perf` sees the full thread (including mod's routing decision) and responds with the actual answer. The adapter streams this response back to Discord:
+
+```
+[Discord #project-x]
+perf: I'd recommend starting with horizontal scaling + Redis caching for your read-heavy endpoints.
+      Here's a breakdown: [...]
+```
+
+---
+
+**Scenario: a user directly mentions an agent**
+
+```
+[Discord #project-x]
+bob: @sec what's the security risk of exposing the internal metrics endpoint?
+```
+
+The adapter detects `@sec` → skips the moderator entirely, calls `agent-sec` directly:
+
+```
+POST http://agent-sec:4111/api/agents/sec/stream
+{
+  "messages": [
+    ...full thread history...,
+    { "role": "user", "content": "@sec what's the security risk of exposing the internal metrics endpoint?" }
+  ],
+  "threadId": "discord:project-x",
+  "resourceId": "discord:project-x"
+}
+```
+
+`agent-sec` responds directly to Discord. The moderator is not involved.
+
+---
+
+**Sequence diagram (moderator mode)**
+
+```
+Discord        Adapter        agent-mod       agent-perf       Discord
+  │                │               │               │               │
+  │─ messageCreate ──▶             │               │               │
+  │                │─ POST /stream ─▶              │               │
+  │                │               │ (decides @perf)              │
+  │                │◀─ SSE: @perf ─┤               │               │
+  │                │─ POST /stream ─────────────────▶              │
+  │                │               │               │ (generates)   │
+  │                │◀─ SSE: answer ─────────────────┤              │
+  │                │──────────────────────────────────── message ──▶
+```
+
+---
+
+**What the agent core does NOT know**
+
+- That the caller is Discord (could be Telegram, a webhook, or a CLI)
+- Which other agents exist (that's the adapter's routing config)
+- How many users are in the channel
+
+The agent core only receives a `messages[]` array with a `threadId`. All orchestration logic lives in the channel adapter.
