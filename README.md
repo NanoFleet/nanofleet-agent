@@ -17,13 +17,13 @@ Built with [Mastra](https://mastra.ai), Bun + TypeScript.
 Language            Files       Lines    Blanks  Comments       Code
 ─────────────────────────────────────────────────────────────────────
 TypeScript             16       1 701       271        32      1 398
-Markdown                9         815       237         0        578
+Markdown                9         854       247         0        578
 JSON                    6         121         0         0        121
 YAML                    3         133        19        15         99
 Dockerfile              1          33        13         0         20
 License                 1          91        27         0         64
 ─────────────────────────────────────────────────────────────────────
-Total                  36       2 894       567        47      2 280
+Total                  36       2 933       577        47      2 309
 ─────────────────────────────────────────────────────────────────────
 ```
 
@@ -184,6 +184,45 @@ SSE streaming response.
 curl -X POST http://localhost:4111/api/agents/main/stream \
   -H "Content-Type: application/json" -N \
   -d '{"messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+</details>
+
+<details>
+<summary><strong>Notifications</strong></summary>
+
+### GET /api/agents/:id/notifications/stream
+
+Subscribe to proactive notifications (SSE). Used by channel adapters to receive
+messages pushed by the agent (heartbeat results, plugin-triggered alerts, etc.).
+
+```bash
+curl -N http://localhost:4111/api/agents/main/notifications/stream
+```
+
+Each event is a JSON object:
+```json
+{ "text": "...", "timestamp": "2026-03-03T07:00:00.000Z", "source": "heartbeat" }
+```
+
+### POST /api/agents/:id/notify
+
+Push a notification directly to all connected channels, without invoking the LLM.
+Intended for plugins that need to deliver content (e.g. a PDF digest) via the
+channel already connected to the agent.
+
+```bash
+curl -X POST http://localhost:4111/api/agents/main/notify \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from a plugin", "source": "my-plugin"}'
+```
+
+To send a document through the channel (e.g. nanofleet-news), pass a JSON payload as `text`:
+```json
+{
+  "text": "{\"type\":\"document\",\"url\":\"http://nanofleet-plugin-nanofleet-news:8830/digests/2026-03-03.pdf\",\"filename\":\"journal-2026-03-03.pdf\"}",
+  "source": "nanofleet-news"
+}
 ```
 
 </details>
