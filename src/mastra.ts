@@ -332,6 +332,16 @@ app.get('/memory/config', (c) => {
   return c.json(memoryConfig);
 });
 
+app.post('/api/agents/:id/notify', async (c) => {
+  const body = await c.req.json();
+  const { text, source } = body;
+  if (!text || typeof text !== 'string') {
+    return c.json({ error: 'text is required' }, 400);
+  }
+  notificationEmitter.notify(text, source ?? 'plugin');
+  return c.json({ ok: true });
+});
+
 app.get('/api/agents/:id/notifications/stream', (c) => {
   const encoder = new TextEncoder();
 
