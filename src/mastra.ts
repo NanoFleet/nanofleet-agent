@@ -4,6 +4,7 @@ import { Agent } from '@mastra/core/agent';
 import { anthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { minimax } from 'vercel-minimax-ai-provider';
 import { version } from '../package.json';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -44,6 +45,10 @@ function resolveModel(modelId: string): { model: ReturnType<typeof anthropic>; n
       model: google(modelId) as any,
       nativeTools: { googleSearch: google.tools.googleSearch({}) },
     };
+  }
+  if (modelId.startsWith('minimax/')) {
+    const modelName = modelId.replace('minimax/', '');
+    return { model: minimax(modelName) as any, nativeTools: {} };
   }
   return {
     model: anthropic(modelId) as any,
