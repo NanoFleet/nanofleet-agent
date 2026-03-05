@@ -1,7 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
-import { join, resolve, sep } from 'node:path';
+import { readFile, writeFile, readdir, stat, mkdir } from 'node:fs/promises';
+import { join, resolve, sep, dirname } from 'node:path';
 
 function getWorkspacePath(): string {
   const workspace = process.env.AGENT_WORKSPACE;
@@ -45,7 +45,7 @@ export const writeFileTool = createTool({
   }),
   execute: async ({ path, content }) => {
     const fullPath = safePath(path);
-
+    await mkdir(dirname(fullPath), { recursive: true });
     await writeFile(fullPath, content, 'utf-8');
 
     return { path, success: true };
