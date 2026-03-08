@@ -27,7 +27,7 @@ RUN mkdir -p /workspace
 
 EXPOSE 4111
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:4111/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD bun -e "fetch('http://localhost:4111/health').then(r=>process.exit(r.ok?0:1))"
 
 CMD ["bun", "src/index.ts"]
